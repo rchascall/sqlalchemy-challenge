@@ -14,7 +14,9 @@ from flask import Flask, jsonify
 #----------------#
 # Database Setup #
 #----------------#
-engine = create_engine("sqlite:///hawaii.sqlite")
+#engine = create_engine("sqlite:///hawaii.sqlite")
+engine = create_engine("sqlite:///sqlalchemy-challenge/SurfsUp/Resources/hawaii.sqlite")
+
 
 # Reflect an existing database into a new model
 Base = automap_base()
@@ -22,9 +24,12 @@ Base = automap_base()
 # Reflect the tables
 Base.prepare(autoload_with=engine)
 
+# View all of the classes that automap found
+Base.classes.keys()
+
 # Save reference to both tables
-#Measurement = Base.classes.measurement
-#Station = Base.classes.station
+Measurement = Base.classes.measurement
+Station = Base.classes.station
 
 #-------------#
 # Flask setup #
@@ -40,9 +45,9 @@ def home():
     return (
         f"Welcome to the Climate App!<br/>"
         f"Available endpoints:<br/>"
-        f"/api/v1.0/precipitation:<br/>"
-        f"/api/v1.0/stations:<br/>"
-        f"/api/v1.0/tobs:<br/>"
+        f"/api/v1.0/precipitation<br/>"
+        f"/api/v1.0/stations<br/>"
+        f"/api/v1.0/tobs<br/>"
     )
 
 @app.route("/api/v1.0/precipitation")
