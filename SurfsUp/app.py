@@ -52,11 +52,25 @@ def home():
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
+
     return "Welcome to the Precipitation Page"
 
 @app.route("/api/v1.0/stations")
 def stations():
-    return "Welcome to the Stations Page"
+    # Create session (link) from Python to the database
+    session = Session(engine)
+
+    ## return "Welcome to the Stations Page"
+
+    # Query all stations
+    results = session.query(Station.name).all()
+
+    session.close()
+
+    # Convert list of tuples into a normal list
+    all_stations = list(np.ravel(results))
+
+    return jsonify(all_stations)
 
 @app.route("/api/v1.0/tobs")
 def tobs():
