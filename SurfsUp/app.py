@@ -50,34 +50,60 @@ def home():
         f"/api/v1.0/tobs<br/>"
     )
 
+#---------------------#
+# Precipitation Route #
+#---------------------#
+
 @app.route("/api/v1.0/precipitation")
 def precipitation():
+    # Create session (link) from Python to the database
+    session = Session(engine)
 
-    return "Welcome to the Precipitation Page"
+    # Query precipitation analysis
+    precipitation_results = session.query(
+                                Measurement.date,
+                                Measurement.prcp
+                                ).filter(Measurement.date <= '2017-08-23', 
+                                Measurement.date >= '2016-08-23').all()
+
+    session.close()
+
+    precipitation_measurements = []
+    for date, prcp, in precipitation_results:
+        precipitation_dict = {}
+        precipitation_dict["date"] = date
+        precipitation_dict["precipitation"] = prcp
+        precipitation_measurements.append(precipitation_dict)
+    
+    return jsonify(precipitation_measurements)    
+
+#----------------#
+# Stations Route #
+#----------------#
 
 @app.route("/api/v1.0/stations")
 def stations():
     # Create session (link) from Python to the database
     session = Session(engine)
 
-    ## return "Welcome to the Stations Page"
-
     # Query all stations
-    results = session.query(Station.name).all()
+    station_results = session.query(Station.name).all()
 
     session.close()
 
     # Convert list of tuples into a normal list
-    all_stations = list(np.ravel(results))
+    all_stations = list(np.ravel(station_results))
 
     return jsonify(all_stations)
+
+#-------------------------------#
+# Temperature Observation Route #
+#-------------------------------#
 
 @app.route("/api/v1.0/tobs")
 def tobs():
     # Create our session (link) from Python to the DB
     session = Session(engine)
-    
-    ##return "Welcome to the Temperature Observations Page"
 
     # Query date and temperature observations for most active station
     tobs_results = session.query(
