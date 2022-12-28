@@ -8,7 +8,7 @@ import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
-
+from datetime import date
 from flask import Flask, jsonify
 
 #----------------#
@@ -48,6 +48,7 @@ def home():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
+        f"/api/v1.0/<start><br/>"
     )
 
 #---------------------#
@@ -102,6 +103,7 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def tobs():
+    
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -126,6 +128,34 @@ def tobs():
     
     return jsonify(station_measurements)
 
-# Main behavior
+#-----------------------------------#
+# Temperature Inquiry by Start Date #
+#-----------------------------------#
+
+@app.route("/api/v1.0/<start>")
+def start_date_inquiry(start):
+    
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    start_date_results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)
+                                        ).filter(Measurement.date >= start).all()
+
+    session.close()
+
+    start_date_measurements = []
+    for date in start_date_results:
+        start_date_dict = {}
+        start_date_dict["date"] = date
+        start_date_dict["min temperature"] = func.min(Measurement.tobs)
+        start_date_dict["average temperature"] = func.avg(Measurement.tobs)
+        start_date_dict["max temperature"] = func.max(Measurement.tobs)
+        start_date_measurements.append(start_date_dict)
+
+    return jsonify(start_date_measurements)
+
+#---------------#
+# Main behavior #
+#---------------#
 if __name__ == "__main__":
     app.run(debug=True)
