@@ -74,7 +74,31 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def tobs():
-    return "Welcome to the Temperature Observations Page"
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+    
+    ##return "Welcome to the Temperature Observations Page"
+
+    # Query date and temperature observations for most active station
+    tobs_results = session.query(
+                        Measurement.date,
+                        Measurement.station,
+                        Measurement.tobs
+                        ).filter(Measurement.date <= '2017-08-23', 
+                                Measurement.date >= '2016-08-23',
+                                Measurement.station == "USC00519281").all()
+
+    session.close()
+
+    station_measurements = []
+    for date, station, tobs in tobs_results:
+        station_dict = {}
+        station_dict["date"] = date
+        station_dict["station"] = station
+        station_dict["temperature observation"] = tobs
+        station_measurements.append(station_dict)
+    
+    return jsonify(station_measurements)
 
 # Main behavior
 if __name__ == "__main__":
