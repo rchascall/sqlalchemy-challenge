@@ -15,7 +15,10 @@ from flask import Flask, jsonify
 # Database Setup #
 #----------------#
 #engine = create_engine("sqlite:///hawaii.sqlite")
-engine = create_engine("sqlite:///sqlalchemy-challenge/SurfsUp/Resources/hawaii.sqlite")
+#engine = create_engine("sqlite:///sqlalchemy-challenge/SurfsUp/Resources/hawaii.sqlite")
+#engine = create_engine("sqlite:///Resources/hawaii.sqlite")
+engine = create_engine("sqlite:///SurfsUp/Resources/hawaii.sqlite")
+
 
 
 # Reflect an existing database into a new model
@@ -49,6 +52,7 @@ def home():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start><br/>"
+        
     )
 
 #---------------------#
@@ -153,6 +157,7 @@ def start_date_inquiry(start):
         start_date_measurements.append(start_date_dict)
 
     return jsonify(start_date_measurements)
+
 
 #---------------#
 # Main behavior #
