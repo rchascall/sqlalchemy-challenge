@@ -14,12 +14,7 @@ from flask import Flask, jsonify
 #----------------#
 # Database Setup #
 #----------------#
-#engine = create_engine("sqlite:///hawaii.sqlite")
-#engine = create_engine("sqlite:///sqlalchemy-challenge/SurfsUp/Resources/hawaii.sqlite")
-#engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 engine = create_engine("sqlite:///SurfsUp/Resources/hawaii.sqlite")
-
-
 
 # Reflect an existing database into a new model
 Base = automap_base()
@@ -52,7 +47,6 @@ def home():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start><br/>"
-        
     )
 
 #---------------------#
@@ -142,18 +136,20 @@ def start_date_inquiry(start):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    start_date_results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)
-                                        ).filter(Measurement.date >= start).all()
+    start_date_results = session.query(
+                                    func.min(Measurement.tobs),
+                                    func.avg(Measurement.tobs),
+                                    func.max(Measurement.tobs)
+                                    ).filter(Measurement.date >= start).all()
 
     session.close()
 
     start_date_measurements = []
-    for date in start_date_results:
+    for tmin, tavg, tmax in start_date_results:
         start_date_dict = {}
-        start_date_dict["date"] = date
-        start_date_dict["min temperature"] = func.min(Measurement.tobs)
-        start_date_dict["average temperature"] = func.avg(Measurement.tobs)
-        start_date_dict["max temperature"] = func.max(Measurement.tobs)
+        start_date_dict["Min Temp"] = tmin
+        start_date_dict["Avg Temp"] = round(tavg, 1)
+        start_date_dict["Max Temp"] = tmax
         start_date_measurements.append(start_date_dict)
 
     return jsonify(start_date_measurements)
