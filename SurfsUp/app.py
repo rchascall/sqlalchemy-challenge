@@ -7,7 +7,7 @@ import numpy as np
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, join
 from datetime import date
 from flask import Flask, jsonify
 
@@ -47,6 +47,7 @@ def home():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start><br/>"
+        f"/api/v1.0/<start>/<end><br/>"
     )
 
 #---------------------#
@@ -86,12 +87,18 @@ def stations():
     session = Session(engine)
 
     # Query all stations
-    station_results = session.query(Station.name).all()
+    station_results = session.query(
+                                Station.station,
+                                Station.name).all()
 
     session.close()
 
-    # Convert list of tuples into a normal list
-    all_stations = list(np.ravel(station_results))
+    all_stations = []
+    for station, station_name in station_results:
+            station_names_dict = {}
+            station_names_dict["station id"] = station
+            station_names_dict["station name"] = station_name
+            all_stations.append(station_names_dict)
 
     return jsonify(all_stations)
 
@@ -107,22 +114,22 @@ def tobs():
 
     # Query date and temperature observations for most active station
     tobs_results = session.query(
-                        Measurement.date,
-                        Measurement.station,
-                        Measurement.tobs
-                        ).filter(Measurement.date <= '2017-08-23', 
-                                Measurement.date >= '2016-08-23',
-                                Measurement.station == "USC00519281").all()
+                                Measurement.date,
+                                Measurement.station,
+                                Measurement.tobs
+                                ).filter(Measurement.date <= '2017-08-23', 
+                                        Measurement.date >= '2016-08-23',
+                                        Measurement.station == "USC00519281").all()
 
     session.close()
 
     station_measurements = []
     for date, station, tobs in tobs_results:
-        station_dict = {}
-        station_dict["date"] = date
-        station_dict["station"] = station
-        station_dict["temperature observation"] = tobs
-        station_measurements.append(station_dict)
+            station_dict = {}
+            station_dict["date"] = date
+            station_dict["station"] = station
+            station_dict["temperature observation"] = tobs
+            station_measurements.append(station_dict)
     
     return jsonify(station_measurements)
 
@@ -154,6 +161,33 @@ def start_date_inquiry(start):
 
     return jsonify(start_date_measurements)
 
+#-----------------------------------------#
+# Temperature Inquiry by Start & End Date #
+#-----------------------------------------#
+
+@app.route("/api/v1.0/<start>/<end>")
+def start_end_date_inquiry(start,end):
+    
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    start_end_date_results = session.query(
+                                    func.min(Measurement.tobs),
+                                    func.avg(Measurement.tobs),
+                                    func.max(Measurement.tobs)
+                                    ).filter(Measurement.date >= start, Measurement.date <= end).all()
+
+    session.close()
+
+    start_end_date_measurements = []
+    for tmin, tavg, tmax in start_end_date_results:
+        start_end_date_dict = {}
+        start_end_date_dict["Min Temp"] = tmin
+        start_end_date_dict["Avg Temp"] = round(tavg, 1)
+        start_end_date_dict["Max Temp"] = tmax
+        start_end_date_measurements.append(start_end_date_dict)
+
+    return jsonify(start_end_date_measurements)
 
 #---------------#
 # Main behavior #
